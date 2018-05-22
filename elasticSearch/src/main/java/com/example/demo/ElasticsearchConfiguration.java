@@ -1,50 +1,35 @@
 package com.example.demo;
 
-import java.net.InetAddress;
-
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
+
+import io.searchbox.client.JestClient;
+import io.searchbox.client.JestClientFactory;
+import io.searchbox.client.config.HttpClientConfig;
 
 @Configuration
 public class ElasticsearchConfiguration {
 	
-	 	@Value("${elasticsearch.host}")
-	    private String EsHost;
-
-	    @Value("${elasticsearch.port}")
-	    private int EsPort;
-
-	    @Value("${elasticsearch.clustername}")
-	    private String EsClusterName;
+		@Value("spring.data.jest.uri")
+		String url;
 
 	    @Bean
-	    public Client client() throws Exception {
+	    public JestClient client() throws Exception {
 	    	
-	    	System.setProperty("http.proxyHost", "10.50.8.20");
-	    	System.setProperty("http.proxyPort", "8080");
-
-	    	Builder builder = Settings.builder();
-	    	// builder.put("client.transport.sniff", true);
-	    	Settings settings = builder.put("cluster.name", EsClusterName).build();
-	    	TransportClient client = new PreBuiltTransportClient(settings);
-	    	InetAddress adress = InetAddress.getByName(EsHost);
-	    	client.addTransportAddress(new InetSocketTransportAddress(adress, EsPort));
+	    	JestClientFactory factory = new JestClientFactory();
+	        factory.setHttpClientConfig(new HttpClientConfig.Builder("https://search-logs-le3f24h7njq2nv5irf3wpagznu.us-west-2.es.amazonaws.com")
+	                .multiThreaded(true)
+	                .build());
+	        JestClient client = factory.getObject();
 
 	    	return client;
 	    }
 
 	    @Bean
-	    public ElasticsearchOperations elasticsearchTemplate() throws Exception {
-	        return new ElasticsearchTemplate(client());
+	    public JestElasticsearchTemplate elasticsearchTemplate() throws Exception {
+	        return new JestElasticsearchTemplate(client());
 	    }
 
 	    //Embedded Elasticsearch Server

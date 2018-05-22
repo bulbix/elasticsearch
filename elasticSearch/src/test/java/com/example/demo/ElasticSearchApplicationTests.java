@@ -32,13 +32,13 @@ public class ElasticSearchApplicationTests {
 	@Test
 	public void testGetThread() throws IOException {
 		
-		List<Map<String,Object>> documents = service.searchTerm("15720184109427640");
+		List<Map<String,Object>> documents = service.searchTerm("15720184109028934");
 		System.out.println("Num Coincidencias: " + documents.size());
 		int index = 0;
 		for(Map<String,Object> doc: documents) {
 			++index;
 			List<String> lines = service.getThread(doc);
-			FileUtils.writeLines(new File(String.format("/Users/lpradof/Desktop/salida/thread%s.txt",index)), lines);
+			FileUtils.writeLines(new File(String.format("F:/salida/thread%s.txt",index)), lines);
 		}
 	}
 	

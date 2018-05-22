@@ -27,6 +27,10 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
+import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
+import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
+
+import io.searchbox.core.SearchResult;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -35,8 +39,7 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 @Slf4j
 public class LogService {
 	
-	@Autowired ElasticsearchTemplate template;
-	
+	@Autowired JestElasticsearchTemplate template;
 	
 	
 	public List<Map<String,Object>> searchTerm(String term) {
@@ -45,13 +48,13 @@ public class LogService {
 				  .withIndices("logbaz")
 				  .withPageable(new PageRequest(0, 10000))
 				  .build();
-		List<Map<String,Object>> result = template.query(searchQuery, new ResultsExtractor<List<Map<String,Object>>>() {
+		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
 
 			@Override
-			public List<Map<String,Object>> extract(SearchResponse arg0) {
+			public List<Map<String, Object>> extract(SearchResult response) {
 				List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
-				for(SearchHit hit : arg0.getHits()) {
-					result.add(hit.getSource());
+				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
+					result.add(hit.source);
 				}
 				
 				return result;
@@ -85,16 +88,15 @@ public class LogService {
 				  .withIndices("logbaz")
 				  .build();
 		
-		List<String> result = template.query(searchQuery, new ResultsExtractor<List<String>>() {
-
+		List<String> result = template.query(searchQuery, new JestResultsExtractor<List<String>>() {
 			@Override
-			public List<String> extract(SearchResponse arg0) {
+			public List<String> extract(SearchResult response) {
 				List<String> result = new ArrayList<String>();
-				for(SearchHit hit : arg0.getHits()) {
-					result.add(hit.getSource().get("message").toString());
+				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
+					result.add(hit.source.get("message").toString());
 				}
 				
-				result.add(arg0.getHits().getAt(0).getSource().get("source").toString());
+				result.add(response.getHits(Map.class).get(0).source.get("source").toString());
 				
 				return result;
 			}
