@@ -67,11 +67,8 @@ public class LogService {
 	public List<String> getThread(Map<String,Object> document){
 		
 		String thread = document.get("thread").toString();
-		//log.info(thread);
 		String str_logdate = document.get("@logdate").toString();
-		//log.info(str_logdate);
 		String source = document.get("source").toString();
-		//log.info(source);
 		
 		DateTime logdate = new DateTime(str_logdate).plusHours(5);
 		//log.info(logdate.toString("yyyy-MM-dd'T'HH:mm:ss,SSS"));
