@@ -39,11 +39,11 @@ public class LogService {
 	
 	
 	
-	public List<Map<String,Object>> searchTerm(String term) {
+	public List<Map<String,Object>> searchTerm(String term, Integer numRegistros, String... indices) {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
 				  .withQuery(matchPhraseQuery("message", term))
-				  .withIndices("logbaz")
-				  .withPageable(new PageRequest(0, 10000))
+				  .withIndices(indices)
+				  .withPageable(new PageRequest(0, numRegistros))
 				  .build();
 		List<Map<String,Object>> result = template.query(searchQuery, new ResultsExtractor<List<Map<String,Object>>>() {
 
@@ -61,7 +61,7 @@ public class LogService {
 		return result;
 	}
 	
-	public List<String> getThread(Map<String,Object> document){
+	public List<String> getThread(Map<String,Object> document, String... indices){
 		
 		String thread = document.get("thread").toString();
 		//log.info(thread);
@@ -82,7 +82,7 @@ public class LogService {
 				  				  lte(logdate.plusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"))))	
 				  .withPageable(new PageRequest(0, 10000))
 				  .withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
-				  .withIndices("logbaz")
+				  .withIndices(indices)
 				  .build();
 		
 		List<String> result = template.query(searchQuery, new ResultsExtractor<List<String>>() {

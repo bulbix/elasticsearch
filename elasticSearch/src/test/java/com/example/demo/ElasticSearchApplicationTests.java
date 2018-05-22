@@ -24,20 +24,19 @@ public class ElasticSearchApplicationTests {
 
 	@Test
 	public void testSearchTerm() {
-		List<Map<String,Object>> documents = service.searchTerm("/api/bdm/pagoServicios/validarReferencia");
+		List<Map<String,Object>> documents = service.searchTerm("/api/bdm/pagoServicios/validarReferencia", 10,"logbaz--2018.05.22");
 		System.out.println("Num Coincidencias: " + documents.size());
 	}
-	
 	
 	@Test
 	public void testGetThread() throws IOException {
 		
-		List<Map<String,Object>> documents = service.searchTerm("15720184109427640");
+		List<Map<String,Object>> documents = service.searchTerm("158201841084029769",10,"logbaz--2018.05.22");
 		System.out.println("Num Coincidencias: " + documents.size());
 		int index = 0;
 		for(Map<String,Object> doc: documents) {
 			++index;
-			List<String> lines = service.getThread(doc);
+			List<String> lines = service.getThread(doc,"logbaz--2018.05.22");
 			FileUtils.writeLines(new File(String.format("/Users/lpradof/Desktop/salida/thread%s.txt",index)), lines);
 		}
 	}

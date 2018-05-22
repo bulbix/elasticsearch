@@ -29,28 +29,19 @@ public class ElasticsearchConfiguration {
 	    @Bean
 	    public Client client() throws Exception {
 	    	
-	    	System.setProperty("http.proxyHost", "10.50.8.20");
-	    	System.setProperty("http.proxyPort", "8080");
-
-	    	Builder builder = Settings.builder();
-	    	// builder.put("client.transport.sniff", true);
-	    	Settings settings = builder.put("cluster.name", EsClusterName).build();
-	    	TransportClient client = new PreBuiltTransportClient(settings);
-	    	InetAddress adress = InetAddress.getByName(EsHost);
-	    	client.addTransportAddress(new InetSocketTransportAddress(adress, EsPort));
-
-	    	return client;
+		    	Builder builder = Settings.builder();
+		    	// builder.put("client.transport.sniff", true);
+		    	Settings settings = builder.put("cluster.name", EsClusterName).build();
+		    	TransportClient client = new PreBuiltTransportClient(settings);
+		    	InetAddress adress = InetAddress.getByName(EsHost);
+		    	client.addTransportAddress(new InetSocketTransportAddress(adress, EsPort));
+	
+		    	return client;
 	    }
 
 	    @Bean
 	    public ElasticsearchOperations elasticsearchTemplate() throws Exception {
 	        return new ElasticsearchTemplate(client());
 	    }
-
-	    //Embedded Elasticsearch Server
-	    /*@Bean
-	    public ElasticsearchOperations elasticsearchTemplate() {
-	        return new ElasticsearchTemplate(nodeBuilder().local(true).node().client());
-	    }*/
 
 }
