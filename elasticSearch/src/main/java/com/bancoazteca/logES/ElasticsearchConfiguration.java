@@ -13,14 +13,14 @@ import io.searchbox.client.config.HttpClientConfig;
 @Configuration
 public class ElasticsearchConfiguration {
 	
-		@Value("${spring.data.jest.uri}")
-		String url;
+		//@Value("${spring.data.jest.uri}")
+		String url="https://search-bazdigital-b3vuzcftsbpqicb3mc64eiimme.us-west-2.es.amazonaws.com";
 		
-		@Value("${proxy.host}")
-		String proxyHost;
+		//@Value("${proxy.host}")
+		String proxyHost="10.50.8.20";
 		
-		@Value("${proxy.port}")
-		Integer proxyPort;
+		//@Value("${proxy.port}")
+		Integer proxyPort=8080;
 
 	    @Bean
 	    public JestClient client() throws Exception {
