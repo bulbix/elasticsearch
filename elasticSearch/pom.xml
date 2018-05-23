@@ -4,13 +4,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.example</groupId>
-	<artifactId>elasticSearch</artifactId>
+	<groupId>com.bancoazteca</groupId>
+	<artifactId>logBazES</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>elasticSearch</name>
-	<description>Demo project for Spring Boot</description>
+	<description>ElasticSearch logBAZ</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -49,14 +49,6 @@
 			<groupId>vc.inreach.aws</groupId>
 			<artifactId>aws-signing-request-interceptor</artifactId>
 			<version>0.0.16</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.16.20</version>
-			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>

@@ -1,28 +1,13 @@
-package com.example.demo;
+package com.bancoazteca.logES;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-
-import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.core.ResultsExtractor;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
@@ -31,22 +16,35 @@ import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
 import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
 
 import io.searchbox.core.SearchResult;
-import lombok.extern.slf4j.Slf4j;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Service
-@Slf4j
 public class LogService {
 	
 	@Autowired JestElasticsearchTemplate template;
 	
-	
-	public List<Map<String,Object>> searchTerm(String term) {
+	/****
+	 * 
+	 * 
+	 * 
+	 * @param term Texto Libre de busqueda
+	 * @param numRegistros registros a devolver
+	 * @param indices arreglos de indices donde buscar
+	 * @return
+	 * Mapa =>  logdate date
+				loglevel text
+				thread text
+				classname text
+				message text solo el mensaje
+				msgbody text Linea completa
+				source text Archivo donde encontro
+	 */
+	public List<Map<String,Object>> searchTerm(String term, Integer numRegistros, String... indices) {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
 				  .withQuery(matchPhraseQuery("message", term))
-				  .withIndices("logbaz")
-				  .withPageable(new PageRequest(0, 10000))
+				  .withIndices(indices)
+				  .withPageable(new PageRequest(0, numRegistros))
 				  .build();
 		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
 
@@ -64,7 +62,13 @@ public class LogService {
 		return result;
 	}
 	
-	public List<String> getThread(Map<String,Object> document){
+	/***
+	 * 
+	 * @param document Mapa devuelto por metodo searchTerm
+	 * @param indices arreglos de indices donde buscar
+	 * @return
+	 */
+	public List<String> getThread(Map<String,Object> document, String... indices){
 		
 		String thread = document.get("thread").toString();
 		String str_logdate = document.get("@logdate").toString();
@@ -82,7 +86,7 @@ public class LogService {
 				  				  lte(logdate.plusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"))))	
 				  .withPageable(new PageRequest(0, 10000))
 				  .withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
-				  .withIndices("logbaz")
+				  .withIndices(indices)
 				  .build();
 		
 		List<String> result = template.query(searchQuery, new JestResultsExtractor<List<String>>() {

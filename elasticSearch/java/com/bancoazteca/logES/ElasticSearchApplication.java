@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.bancoazteca.logES;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

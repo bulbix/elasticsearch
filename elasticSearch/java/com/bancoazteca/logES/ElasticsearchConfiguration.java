@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.bancoazteca.logES;
 
 import org.apache.http.HttpHost;
 import org.springframework.beans.factory.annotation.Value;
