@@ -21,9 +21,9 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Service
 public class LogService {
-	
+
 	@Autowired JestElasticsearchTemplate template;
-	
+
 	/****
 	 * 
 	 * 
@@ -42,10 +42,11 @@ public class LogService {
 	 */
 	public List<Map<String,Object>> searchTerm(String term, Integer numRegistros, String... indices) {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
-				  .withQuery(matchPhraseQuery("message", term))
-				  .withIndices(indices)
-				  .withPageable(new PageRequest(0, numRegistros))
-				  .build();
+				.withQuery(matchPhraseQuery("message", term))
+				.withIndices(indices)
+				.withPageable(new PageRequest(0, numRegistros))
+				.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
+				.build();
 		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
 
 			@Override
@@ -54,41 +55,41 @@ public class LogService {
 				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
 					result.add(hit.source);
 				}
-				
+
 				return result;
 			}
 		});
-		
+
 		return result;
 	}
-	
+
 	/***
+	 * Busqueda por documento
 	 * 
 	 * @param document Mapa devuelto por metodo searchTerm
-	 * @param indices arreglos de indices donde buscar
+	 * @param indices arreglo de indices donde buscar
 	 * @return
 	 */
 	public List<String> getThread(Map<String,Object> document, String... indices){
-		
+
 		String thread = document.get("thread").toString();
 		String str_logdate = document.get("@logdate").toString();
 		String source = document.get("source").toString();
-		
+
 		DateTime logdate = new DateTime(str_logdate).plusHours(5);
-		//log.info(logdate.toString("yyyy-MM-dd'T'HH:mm:ss,SSS"));
-		
+
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
-				  .withQuery(boolQuery()
-						  .must(matchPhraseQuery("thread", thread))
-						  .must(matchQuery("source", source))
-				  		  .must(rangeQuery("@logdate")
-				  				  .gte(logdate.minusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS")).
-				  				  lte(logdate.plusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"))))	
-				  .withPageable(new PageRequest(0, 10000))
-				  .withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
-				  .withIndices(indices)
-				  .build();
-		
+				.withQuery(boolQuery()
+						.must(matchPhraseQuery("thread", thread))
+						.must(matchQuery("source", source))
+						.must(rangeQuery("@logdate")
+								.gte(logdate.minusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS")).
+								lte(logdate.plusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"))))	
+				.withPageable(new PageRequest(0, 10000))
+				.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
+				.withIndices(indices)
+				.build();
+
 		List<String> result = template.query(searchQuery, new JestResultsExtractor<List<String>>() {
 			@Override
 			public List<String> extract(SearchResult response) {
@@ -96,19 +97,37 @@ public class LogService {
 				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
 					result.add(hit.source.get("message").toString());
 				}
-				
+
 				result.add(response.getHits(Map.class).get(0).source.get("source").toString());
-				
+
 				return result;
 			}
 		});
-		
-		
-		
+
 		return result;
-		
+
 	}
-	
-	
+
+	/***
+	 * 
+	 * Busqueda por linea
+	 * 
+	 * @param linea detalle de la linea encontrada
+	 * @param indices arreglo de indices donde buscar
+	 * @return
+	 */
+	public List<String> getThread(String linea, String... indices){
+
+		List<Map<String,Object>> documents = searchTerm(linea, 1, indices);
+		if(documents.size() > 0 ) {
+			return getThread(documents.get(0), indices);
+		}
+		else {
+			throw new IllegalAccessError("No se encontro coincidencia");
+		}
+
+
+	}
+
 
 }
