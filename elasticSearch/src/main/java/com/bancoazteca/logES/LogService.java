@@ -7,6 +7,8 @@ import java.util.Map;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +87,7 @@ public class LogService {
 		String str_logdate = document.get("@logdate").toString();
 		String indexName = document.get("_index").toString();
 		String source = document.get("source").toString();
-		DateTime logdate = new DateTime(str_logdate).plusHours(6);
+		DateTime logdate = new DateTime(str_logdate).plusHours(5);
 		
 		log.info(String.format("\nQueryFields:\n%s\n%s\n%s\n%s", thread,str_logdate,indexName,source));
 
@@ -94,7 +96,7 @@ public class LogService {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
 				.withQuery(boolQuery()
 						.must(matchPhraseQuery("thread", thread))
-						.must(matchPhraseQuery("source", source))
+						.must(matchQuery("source", source))
 						.must(rangeQuery("@logdate")
 								.gte(logdate.minusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS")).
 								lte(logdate.plusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"))))	
@@ -116,7 +118,7 @@ public class LogService {
 					String rmsgbody = hit.source.get("msgbody").toString();
 					DateTime rlogdate = new DateTime(rstr_logdate);
 					
-					String linea = String.format("[#| %s %s %s %s - %s |#]", rlogdate.toString("yyyy-MM-dd'T'HH:mm:ss,SSS"),rloglevel,rthread,rclassname,rmsgbody);
+					String linea = String.format("[#| %s %s  %s %s - %s |#]", rlogdate.toString("yyyy-MM-dd HH:mm:ss,SSS"),rloglevel,rthread,rclassname,rmsgbody);
 					result.add(linea);
 				}
 
@@ -175,15 +177,18 @@ public class LogService {
 	 */
 	protected List<Map<String,Object>> getLineMatch(Map<String,Object> source, String... indices) {
 		
-		String logdate = source.get("logdate").toString();
+		String str_logdate = source.get("logdate").toString();
 		String loglevel = source.get("loglevel").toString();
 		String thread = source.get("thread").toString();
 		String classname = source.get("classname").toString();
 		String msgbody = source.get("msgbody").toString();
 		
+		DateTimeFormatter dtf  = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss,SSS");
+		DateTime logdate = dtf.parseDateTime(str_logdate).plusHours(5);
+		
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
 				.withQuery(boolQuery()
-						//.must(matchQuery("logdate", logdate))
+						.must(matchQuery("@logdate", logdate.toString("yyyy-MM-dd'T'HH:mm:ss,SSS")))
 						.must(matchPhraseQuery("loglevel", loglevel))
 						.must(matchPhraseQuery("thread", thread))
 						.must(matchPhraseQuery("classname", classname))
