@@ -29,6 +29,7 @@ public class ElasticsearchConfiguration {
 		    	factory.setHttpClientConfig(new HttpClientConfig.Builder(url)
 		    			.multiThreaded(true)
 		    			.proxy(new HttpHost(proxyHost, proxyPort))
+		    			.readTimeout(60000)
 		    			.build());
 		    	JestClient client = factory.getObject();
 	
