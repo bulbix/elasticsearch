@@ -1,19 +1,27 @@
 package com.bancoazteca.logES;
 
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.ScriptField;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
@@ -50,13 +58,38 @@ public class LogService {
 				msgbody text Linea completa
 				source text Archivo donde encontro
 	 */
-	public List<Map<String,Object>> searchTerm(String term, Integer numRegistros, String... indices) {
-		SearchQuery searchQuery = new NativeSearchQueryBuilder()
-				.withQuery(matchPhraseQuery("msgbody", term))
-				.withIndices(indices)
-				.withPageable(new PageRequest(0, numRegistros))
-				.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
-				.build();
+	public List<Map<String,Object>> searchTerm(String term, Integer numRegistros, String[] rangoTiempo, String... indices) {
+		
+		NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
+		BoolQueryBuilder boolBuilder = boolQuery().must(matchPhraseQuery("msgbody", term));
+		
+		if(rangoTiempo != null) {
+			DateTimeFormatter dtf  = DateTimeFormat.forPattern("HH:mm:ss");
+			LocalTime horaInicio = dtf.parseLocalTime(rangoTiempo[0]).plusHours(5);
+			LocalTime horaFin = dtf.parseLocalTime(rangoTiempo[1]).plusHours(5);
+			
+			log.info("Hora inicio: " + horaInicio.toString("HH:mm:ss"));
+			log.info("Hora fin: " + horaFin.toString("HH:mm:ss"));
+			
+			log.info( horaInicio.getHourOfDay()+"");
+			Map<String,Object> params = new HashMap<>();
+			params.put("startHour", horaInicio.getHourOfDay());
+			params.put("endHour", horaFin.getHourOfDay());
+			params.put("startMinute", horaInicio.getMinuteOfHour());
+			params.put("endMinute", horaFin.getMinuteOfHour());
+			
+			
+			boolBuilder.must(scriptQuery(new Script(ScriptType.INLINE, "expression",
+					"doc['@logdate'].getHourOfDay() >= startHour && doc['@logdate'].getHourOfDay() <= endHour", params)));
+		}
+		
+		builder.withQuery(boolBuilder);
+		
+		NativeSearchQuery searchQuery = builder.withIndices(indices)
+		.withPageable(new PageRequest(0, numRegistros))
+		.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
+		.build();
+		
 		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
 
 			@Override
