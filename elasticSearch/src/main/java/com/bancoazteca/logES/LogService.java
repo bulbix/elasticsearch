@@ -151,7 +151,7 @@ public class LogService {
 					String rmsgbody = hit.source.get("msgbody").toString();
 					DateTime rlogdate = new DateTime(rstr_logdate);
 					
-					String linea = String.format("[#| %s %s  %s %s - %s |#]", rlogdate.toString("yyyy-MM-dd HH:mm:ss,SSS"),rloglevel,rthread,rclassname,rmsgbody);
+					String linea = String.format("[#| %s %s  %s %s - %s", rlogdate.toString("yyyy-MM-dd HH:mm:ss,SSS"),rloglevel,rthread,rclassname,rmsgbody);
 					result.add(linea);
 				}
 
