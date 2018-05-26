@@ -26,14 +26,14 @@ public class ElasticSearchApplicationTests {
 	
 	@Autowired LogService service;
 	
-	final String[] arrayIndexName = {"logbaztest-2018.05.24"};
+	final String[] arrayIndexName = {"logbaztest-2018.05.25"};
 	final int numRegistros = 1;
 	
 	final String lineLog = "[#| 2018-01-24 08:52:27,995 INFO  (HTTP-CRED-242) PathInterceptor:44 - CECO: Tiempo: 1 Milisegundos  CECO: Tiempo: 1 Milisegundos   Tiempo de ejecucion Total: 1288 Milisegundos |#] ";
 
 	@Test
 	public void testSearchTerm() {
-		List<Map<String,Object>> documents = service.searchTerm("CECO:",numRegistros,arrayIndexName);
+		List<Map<String,Object>> documents = service.searchTerm("CECO:",numRegistros,null,arrayIndexName);
 		System.out.println("Num Coincidencias: " + documents.size());
 	}
 	
@@ -41,7 +41,7 @@ public class ElasticSearchApplicationTests {
 	@Test
 	public void testGetThread() throws IOException {
 		
-		List<Map<String,Object>> documents = service.searchTerm("CECO:",numRegistros,arrayIndexName);
+		List<Map<String,Object>> documents = service.searchTerm("CECO:",numRegistros,null,arrayIndexName);
 		System.out.println("Num Coincidencias: " + documents.size());
 		int index = 0;
 		for(Map<String,Object> doc: documents) {
