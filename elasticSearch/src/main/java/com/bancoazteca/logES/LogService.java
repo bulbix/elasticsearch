@@ -253,8 +253,7 @@ public class LogService {
 	 * @return arreglo de indices del cluster
 	 */
 	public String[] getIndices(){
-		//return template. getIndicesFromAlias("").toArray(new String[] {});
-		return null;
+		return template.getClient().admin().indices().prepareGetIndex().setFeatures().get().getIndices();
 	}
 
 
