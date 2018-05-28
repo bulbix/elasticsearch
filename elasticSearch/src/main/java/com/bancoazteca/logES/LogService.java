@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
@@ -19,26 +21,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ResultsExtractor;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.ScriptField;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
-
-import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
-import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
-
 import io.krakens.grok.api.Grok;
 import io.krakens.grok.api.GrokCompiler;
 import io.krakens.grok.api.Match;
-import io.searchbox.core.SearchResult;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 @Service
 public class LogService {
 
-	@Autowired JestElasticsearchTemplate template;
+	@Autowired ElasticsearchTemplate template;
 	
 	Logger log = LoggerFactory.getLogger(LogService.class);
 
@@ -90,14 +89,14 @@ public class LogService {
 		.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
 		.build();
 		
-		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
+		List<Map<String,Object>> result = template.query(searchQuery, new ResultsExtractor<List<Map<String,Object>>>() {
 
 			@Override
-			public List<Map<String, Object>> extract(SearchResult response) {
+			public List<Map<String, Object>> extract(SearchResponse response) {
 				List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
-				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
-					hit.source.put("_index", hit.index);
-					result.add(hit.source);
+				for(SearchHit hit : response.getHits()) {
+					hit.getSource().put("_index", hit.getIndex());
+					result.add(hit.getSource());
 				}
 
 				return result;
@@ -138,17 +137,17 @@ public class LogService {
 				.withIndices(indices)
 				.build();
 
-		List<String> result = template.query(searchQuery, new JestResultsExtractor<List<String>>() {
+		List<String> result = template.query(searchQuery, new ResultsExtractor<List<String>>() {
 			@Override
-			public List<String> extract(SearchResult response) {
+			public List<String> extract(SearchResponse response) {
 				List<String> result = new ArrayList<String>();
-				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
+				for(SearchHit hit : response.getHits()) {
 					
-					String rstr_logdate = hit.source.get("@logdate").toString();
-					String rloglevel = hit.source.get("loglevel").toString();
-					String rthread = hit.source.get("thread").toString();
-					String rclassname = hit.source.get("classname").toString();
-					String rmsgbody = hit.source.get("msgbody").toString();
+					String rstr_logdate = hit.getSource().get("@logdate").toString();
+					String rloglevel = hit.getSource().get("loglevel").toString();
+					String rthread = hit.getSource().get("thread").toString();
+					String rclassname = hit.getSource().get("classname").toString();
+					String rmsgbody = hit.getSource().get("msgbody").toString();
 					DateTime rlogdate = new DateTime(rstr_logdate);
 					
 					String linea = String.format("[#| %s %s  %s %s - %s", rlogdate.toString("yyyy-MM-dd HH:mm:ss,SSS"),rloglevel,rthread,rclassname,rmsgbody);
@@ -231,14 +230,14 @@ public class LogService {
 				.withIndices(indices)
 				.build();
 		
-		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
+		List<Map<String,Object>> result = template.query(searchQuery, new ResultsExtractor<List<Map<String,Object>>>() {
 
 			@Override
-			public List<Map<String, Object>> extract(SearchResult response) {
+			public List<Map<String, Object>> extract(SearchResponse response) {
 				List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
-				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
-					hit.source.put("_index", hit.index);
-					result.add(hit.source);
+				for(SearchHit hit : response.getHits()) {
+					hit.getSource().put("_index", hit.getIndex());
+					result.add(hit.getSource());
 				}
 
 				return result;
@@ -254,7 +253,8 @@ public class LogService {
 	 * @return arreglo de indices del cluster
 	 */
 	public String[] getIndices(){
-		return template.getIndicesFromAlias("").toArray(new String[] {});
+		//return template. getIndicesFromAlias("").toArray(new String[] {});
+		return null;
 	}
 
 

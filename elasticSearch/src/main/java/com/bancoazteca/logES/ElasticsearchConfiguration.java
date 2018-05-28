@@ -1,43 +1,48 @@
 package com.bancoazteca.logES;
 
+import java.net.InetAddress;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
-
-import io.searchbox.client.JestClient;
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 
 @Configuration
 public class ElasticsearchConfiguration {
 	
-		@Value("${spring.data.jest.uri}")
-		String url;
-		
-		@Value("${proxy.host}")
-		String proxyHost;
-		
-		@Value("${proxy.port}")
-		Integer proxyPort;
+	@Value("${elasticsearch.host}")
+    private String EsHost;
 
-	    @Bean
-	    public JestClient client() throws Exception {
-	    	
-		    	JestClientFactory factory = new JestClientFactory();
-		    	factory.setHttpClientConfig(new HttpClientConfig.Builder(url)
-		    			.multiThreaded(true)
-		    			//.proxy(new HttpHost(proxyHost, proxyPort))
-		    			.readTimeout(60000)
-		    			.build());
-		    	JestClient client = factory.getObject();
-	
-		    	return client;
-	    }
+    @Value("${elasticsearch.port}")
+    private int EsPort;
 
-	    @Bean
-	    public JestElasticsearchTemplate elasticsearchTemplate() throws Exception {
-	        return new JestElasticsearchTemplate(client());
-	    }
+    @Value("${elasticsearch.clustername}")
+    private String EsClusterName;
+
+    @Bean
+    public Client client() throws Exception {
+    	
+	    	Builder builder = Settings.builder();
+	    	// builder.put("client.transport.sniff", true);
+	    	Settings settings = builder.put("cluster.name", EsClusterName).build();
+	    	TransportClient client = new PreBuiltTransportClient(settings);
+	    	InetAddress adress = InetAddress.getByName(EsHost);
+	    	client.addTransportAddress(new InetSocketTransportAddress(adress, EsPort));
+
+	    	return client;
+    }
+
+    @Bean
+    public ElasticsearchOperations elasticsearchTemplate() throws Exception {
+        return new ElasticsearchTemplate(client());
+    }
 
 }

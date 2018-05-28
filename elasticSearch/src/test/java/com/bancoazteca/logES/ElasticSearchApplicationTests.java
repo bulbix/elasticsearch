@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.bancoazteca.logES.LogService;
-import com.google.gson.Gson;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,7 +25,7 @@ public class ElasticSearchApplicationTests {
 	
 	@Autowired LogService service;
 	
-	final String[] arrayIndexName = {"logbaztest-2018.05.25"};
+	final String[] arrayIndexName = {"logbaz-2018.05.28"};
 	final int numRegistros = 1;
 	
 	final String lineLog = "[#| 2018-01-24 08:52:27,995 INFO  (HTTP-CRED-242) PathInterceptor:44 - CECO: Tiempo: 1 Milisegundos  CECO: Tiempo: 1 Milisegundos   Tiempo de ejecucion Total: 1288 Milisegundos |#] ";
@@ -41,7 +40,7 @@ public class ElasticSearchApplicationTests {
 	@Test
 	public void testGetThread() throws IOException {
 		
-		List<Map<String,Object>> documents = service.searchTerm("CECO:",numRegistros,null,arrayIndexName);
+		List<Map<String,Object>> documents = service.searchTerm("/saldos/consultar",numRegistros,null,arrayIndexName);
 		System.out.println("Num Coincidencias: " + documents.size());
 		int index = 0;
 		for(Map<String,Object> doc: documents) {
