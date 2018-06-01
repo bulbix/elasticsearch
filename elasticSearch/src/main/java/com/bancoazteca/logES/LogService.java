@@ -118,11 +118,10 @@ public class LogService {
 
 		String thread = document.get("thread").toString();
 		String str_logdate = document.get("@logdate").toString();
-		String indexName = document.get("_index").toString();
 		String source = document.get("source").toString();
 		DateTime logdate = new DateTime(str_logdate).plusHours(5);
 		
-		log.info(String.format("\nQueryFields:\n%s\n%s\n%s\n%s", thread,str_logdate,indexName,source));
+		log.info(String.format("\nQueryFields:\n%s\n%s\n%s", thread,str_logdate,source));
 
 		log.info(logdate.minusSeconds(2).toString("yyyy-MM-dd'T'HH:mm:ss,SSS"));
 		
@@ -155,7 +154,7 @@ public class LogService {
 					result.add(linea);
 				}
 
-				result.add(indexName + "--" + source);
+				result.add(source);
 
 				return result;
 			}
@@ -175,15 +174,13 @@ public class LogService {
 	 */
 	public List<String> getThread(String linea, String... indices){
 		
-		Map<String,Object> source = getFieldsFromLineLog(linea);
-		List<Map<String,Object>> documents = getLineMatch(source, indices);
-		
-		if(documents.size() > 0 ) {
-			return getThread(documents.get(0), indices);
-		}
-		else {
-			throw new IllegalAccessError("No se encontro coincidencia");
-		}
+		String linelog  = linea.split("@@@")[0];
+		String source  = linea.split("@@@")[1];
+		Map<String,Object> document = new HashMap<>(getFieldsFromLineLog(linelog));
+		DateTimeFormatter dtf  = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss,SSS");
+		document.put("@logdate", dtf.parseDateTime(document.get("logdate").toString()));
+		document.put("source", source);
+		return getThread(document, indices);
 	}
 	
 	/**
@@ -199,54 +196,6 @@ public class LogService {
 		final Grok grok = grokCompiler.compile("\\[\\#\\| %{TIMESTAMP_ISO8601:logdate} %{LOGLEVEL:loglevel}  %{DATA:thread} %{DATA:classname} - %{GREEDYDATA:msgbody}");
 		Match gm = grok.match(linealog);
 		return gm.capture();
-	}
-	
-	
-	/***
-	 * Recupera un documento a partir del mapa de campos de la liea de log
-	 * @param source
-	 * @param indices
-	 * @return
-	 */
-	protected List<Map<String,Object>> getLineMatch(Map<String,Object> source, String... indices) {
-		
-		String str_logdate = source.get("logdate").toString();
-		String loglevel = source.get("loglevel").toString();
-		String thread = source.get("thread").toString();
-		String classname = source.get("classname").toString();
-		String msgbody = source.get("msgbody").toString();
-		
-		DateTimeFormatter dtf  = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss,SSS");
-		DateTime logdate = dtf.parseDateTime(str_logdate).plusHours(5);
-		
-		SearchQuery searchQuery = new NativeSearchQueryBuilder()
-				.withQuery(boolQuery()
-						.must(matchQuery("@logdate", logdate.toString("yyyy-MM-dd'T'HH:mm:ss,SSS")))
-						.must(matchPhraseQuery("loglevel", loglevel))
-						.must(matchPhraseQuery("thread", thread))
-						.must(matchPhraseQuery("classname", classname))
-						.must(matchPhraseQuery("msgbody", msgbody)))
-				.withPageable(new PageRequest(0, 1))
-				.withSort(SortBuilders.fieldSort("@logdate").order(SortOrder.ASC))
-				.withIndices(indices)
-				.build();
-		
-		List<Map<String,Object>> result = template.query(searchQuery, new JestResultsExtractor<List<Map<String,Object>>>() {
-
-			@Override
-			public List<Map<String, Object>> extract(SearchResult response) {
-				List<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
-				for(SearchResult.Hit<Map,Void> hit : response.getHits(Map.class)) {
-					hit.source.put("_index", hit.index);
-					result.add(hit.source);
-				}
-
-				return result;
-			}
-		});
-		
-		return result;
-		
 	}
 	
 	/***

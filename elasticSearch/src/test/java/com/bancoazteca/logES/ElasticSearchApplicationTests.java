@@ -26,7 +26,7 @@ public class ElasticSearchApplicationTests {
 	
 	@Autowired LogService service;
 	
-	final String[] arrayIndexName = {"logbaztest-2018.05.25"};
+	final String[] arrayIndexName = {"logbaz-2018.06.01"};
 	final int numRegistros = 1;
 	
 	final String lineLog = "[#| 2018-01-24 08:52:27,995 INFO  (HTTP-CRED-242) PathInterceptor:44 - CECO: Tiempo: 1 Milisegundos  CECO: Tiempo: 1 Milisegundos   Tiempo de ejecucion Total: 1288 Milisegundos |#] ";
